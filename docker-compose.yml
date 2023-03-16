@@ -1,0 +1,59 @@
+version: '3.9'
+services:
+  react-commonify:
+    build:
+      context: .
+      dockerfile: react.dockerfile
+    volumes:
+      - reactVolume:/client
+      - ./client:/build/client:ro
+      - ./client/node_modules:/build/client/node_modules
+    ports:
+      - 3000:3000
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - node-commonify
+  node-commonify:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3001:3001
+    volumes:
+      - nodeVolume:/server
+      - .:/build
+      - ./server/node_modules:/build/server/node_modules
+    environment:
+      SERVER_PORT: 3001
+    depends_on:
+      - mysql-commonify
+  mysql-commonify:
+    image: mysql
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pass
+      - MYSQL_ROOT_PASSWORD=rootpass
+    volumes:
+      - mysql-commonify:/data/db 
+  phpmyadmin-commonify:
+    image: phpmyadmin
+    links: 
+      - mysql-commonify
+    restart: always
+    ports:
+      - 3005:80
+    environment:
+    - PMA_HOST=mysql
+    - PMA_PORT=3306
+    - PMA_ARBITRARY=1
+    - UPLOAD_LIMIT=1500M
+volumes:
+  reactVolume:
+  nodeVolume:
+  mysql-commonify:
+networks:
+  mongo-compose-network:
+    driver: bridge
