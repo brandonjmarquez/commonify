@@ -1,29 +1,36 @@
 import express from 'express';
+import { Request, Response, NextFunction } from 'express';
+import cookieSession from 'cookie-session';
 const app = express();
 import mysql from 'mysql2';
-// import request from 'request';
 import fetch from 'node-fetch';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import querystring from 'node:querystring';
+import * as dotenv from 'dotenv';
+dotenv.config();
 import pool from './util/dbconfig.js';
 import spotifyRoutes from './routes/spotifyRoutes.js';
-const PORT = process.env.server_port || 3001;
+import refreshAccessToken from './middlewares/refreshAccessToken.js'
 
-var client_id = 'a87c75bf1e7445e4b565d6e84ff20c5b'; // Your client id
-var client_secret = '0ebced300ac548b0beaa19516e25d55c'; // Your secret
-var redirect_uri = 'http://localhost:3001/callback'; // Your redirect uri
-
-app.use(cors())
-   .use('/api', spotifyRoutes);
+const PORT = process.env.SERVER_PORT || 3001;
+var client_id = process.env.client_id!; // Your client id
+var client_secret = process.env.client_secret!; // Your secret
+var redirect_uri = `${process.env.BACKEND_URI}/callback`; // Your redirect uri
 
 const getAll = async () => {
   const sql = 'SELECT * FROM test_table';
   const [rows] = await pool.promise().query(sql);
   console.log(rows)
 }
+app.get("/", (req, res) => {
+  getAll();
+  // req.session!.views = (req.session!.views || 0) + 1
 
-getAll();
+  // console.log(req.session!.access_token, "hello")
+  // res.end(req.session!.views + ' views');
+  // return res.send("Session set")
+});
 
 var generateRandomString = function(length: number) {
   var text = '';
@@ -37,16 +44,28 @@ var generateRandomString = function(length: number) {
 
 var stateKey = 'spotify_auth_state';
 
-app.use(cors())
-   .use(cookieParser());
+app
+  .use(cors({
+    origin: process.env.FRONTEND_URI, 
+    credentials: true,            //access-control-allow-credentials:true
+  }))
+  .use(cookieParser())
+  .use(cookieSession({
+    name: 'Brandon',
+    keys: ['change_this'],
+    maxAge: 24 * 60 * 60 * 1000,
+    secure: false
+  }))
+  .use(express.urlencoded({ extended: true }))
+  .use(express.json());
 
-app.get('/login', function(req: any, res: any) {
-
+app.get('/auth/login', function(req: any, res: any) {
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
-  
+
   // your application requests authorization
-  var scope = 'user-read-private user-read-email';
+  // var scope = 'user-read-private user-read-email';
+  var scope = 'user-read-private playlist-modify playlist-modify-public';
 
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
@@ -59,13 +78,12 @@ app.get('/login', function(req: any, res: any) {
 });
 
 app.get('/callback', async (req: any, res: any) => {
-
   // your application requests refresh and access tokens
   // after checking the state parameter
 
-  var code = req.query.code || null;
-  var state = req.query.state || null;
-  var storedState = req.cookies ? req.cookies[stateKey] : null;
+  const code = req.query.code || null;
+  const state = req.query.state || null;
+  const storedState = req.cookies ? req.cookies[stateKey] : null;
 
   if (state === null || state !== storedState) {
     res.redirect('/#' +
@@ -75,10 +93,10 @@ app.get('/callback', async (req: any, res: any) => {
   } else {
     res.clearCookie(stateKey);
     const params = new URLSearchParams();
-    params.append('code', code);
-    params.append('redirect_uri', redirect_uri);
-    params.append('grant_type', 'authorization_code');
-    var authOptions = {
+      params.append('code', code);
+      params.append('redirect_uri', redirect_uri);
+      params.append('grant_type', 'authorization_code');
+    const authOptions = {
       method: 'POST',
       url: 'https://accounts.spotify.com/api/token',
       body: params,
@@ -93,50 +111,29 @@ app.get('/callback', async (req: any, res: any) => {
       json: true
     };
 
-    let authRes = await fetch('https://accounts.spotify.com/api/token', authOptions);
-    console.log(authRes)
+    const authRes = await fetch('https://accounts.spotify.com/api/token', authOptions);
+    // console.log(authRes)
     const data: any = await authRes.json();
-    console.log(data);
+    // console.log(data);
     if(authRes.status === 200) {
-      var access_token = data.access_token,
+      const access_token = data.access_token,
           refresh_token = data.refresh_token;
 
-      console.log(access_token)
-      var options = {
+      const options = {
         url: 'https://api.spotify.com/v1/me',
         method: 'GET',
         headers: { 'Authorization': 'Bearer ' + access_token },
-        json: true
       };
       
       // use the access token to access the Spotify Web API
       const profileRes = await fetch('https://api.spotify.com/v1/me', options);
       const profileData: any = await profileRes.json();
-      const id = profileData.id;
-      // function(error: any, response: any, body: any) {
-      //   console.log(body.id);
-      //   var options2 = {
-      //     url: `https://api.spotify.com/v1/users/${body.id}/playlists`,
-      //     headers: { 'Authorization': 'Bearer ' + access_token },
-      //     json: true
-      //   };
-      // })
-      //   // var options3 = {
-      //   //   url: `https://api.spotify.com/v1/playlists/0nu7ELklnGluV5PbOBl4D0/tracks`,
-      //   //   headers: { 'Authorization': 'Bearer ' + access_token },
-      //   //   json: true
-      //   // };
-
-      //   // request.get(options2, (error: any, res: any, body: any) => {
-      //   //   console.log(body.items[0])
-      //   //   console.log(body)
-      //   //   res.send(body)
-      //   // })
-      // });
+      const { id } = profileData;
 
       // we can also pass the token to the browser to make requests from there
-      res.redirect('http://localhost:3000/' + id);
-      // res.send(body)
+      req.session.access_token = access_token;
+      req.session.refresh_token = refresh_token;
+      res.redirect(process.env.FRONTEND_URI + '/' + id);
     } else {
       res.redirect('/#' +
         querystring.stringify({
@@ -146,37 +143,45 @@ app.get('/callback', async (req: any, res: any) => {
   }
 });
 
-
-
-app.get('/playlists/:id/', async (req: any, res: any) => {
+app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (req: any, res: any, next) => {
   try {
-    const options = {
-      headers: { 'Authorization': 'Bearer ' + 'access_token' },
-      json: true
-    };
-
-    // var options3 = {
-    //   url: `https://api.spotify.com/v1/playlists/0nu7ELklnGluV5PbOBl4D0/tracks`,
-    //   headers: { 'Authorization': 'Bearer ' + await client.get('access_token') },
-    //   json: true
-    // };
-
-    const response = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, options);
-    const data = await response.json()
-    console.log(data)
-      
-    
     res.status(200);
-    res.send(data);
-    console.log('hello2')
+    res.send();
   } catch(err) {
-    console.error(err)
+    console.log(err);
   }
-  
-
 })
 
+app.get('/auth/is-logged-in', async (req: any, res: any, next) => {
+  try {
+    if(req.session.refresh_token) {
+      const profileRes = await fetch('https://api.spotify.com/v1/me', {
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+      });
+      const profileData: any = await profileRes.json();
 
+      if(profileRes.status === 200) {
+        res.send(profileData.id)
+      } else if(profileRes.status === 401) {
+        next();
+        const profileRes = await fetch('https://api.spotify.com/v1/me', {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+        });
+        const profileData: any = await profileRes.json();
+
+        res.send(profileData.id)
+      }
+    } else {
+      res.send('')
+    }
+  } catch(err) {
+    console.log(err);
+  }
+}, refreshAccessToken(client_id, client_secret));
+
+app.use('/api', spotifyRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`)

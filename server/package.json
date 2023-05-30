@@ -3,16 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.ts",
-  "scripts": {
-    "start": "ts-node-dev --experimental-modules server.ts",
-    "dev": "nodemon -L server.ts"
-  },
   "author": "",
   "type": "module",
   "license": "ISC",
   "dependencies": {
     "cookie-parser": "^1.4.6",
+    "cookie-session": "^2.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "got": "^11.8.3",
     "mysql": "^2.18.1",
@@ -24,10 +22,11 @@
   "devDependencies": {
     "@tsconfig/node-lts-strictest-esm": "^18.12.1",
     "@types/cookie-parser": "^1.4.3",
+    "@types/cookie-session": "^2.0.44",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.17",
     "@types/mysql": "^2.15.21",
-    "@types/node": "^18.15.0",
+    "@types/node": "^18.16.16",
     "nodemon": "^2.0.21",
     "ts-node": "^10.9.1"
   }

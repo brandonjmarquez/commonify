@@ -1,0 +1,5 @@
+node_modules
+authentication
+dist
+./docker-compose.yml
+.env

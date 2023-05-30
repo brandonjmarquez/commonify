@@ -2,8 +2,6 @@
   "compilerOptions": {
     "module": "esnext",
     "allowJs": true,
-    "rootDir": "./",
-    "outDir": "./build",
     "target": "es2022",
     "watch": true,
     "lib": [
@@ -17,6 +15,11 @@
       "@node_modules/*": ["../node_modules/*"],
     },
     "moduleResolution": "node",
+    "esModuleInterop": true,
+    "rootDir": "./", // Location of TypeScript files
+    "outDir": "dist", // Location of compiled JavaScript files
+
+    "sourceMap": true // Generate sourcemaps
   },
   "ts-node": {
     // Tell ts-node CLI to install the --loader automatically
