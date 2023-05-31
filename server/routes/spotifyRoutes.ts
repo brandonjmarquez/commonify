@@ -23,17 +23,73 @@ spotifyRoutes
     }
   })
 
-  .get('/selected-playlists/:id', async (req: any, res: any) => {
+  .post('/merge-playlists', async (req: any, res: any) => { 
     try {
-      const response = await fetch(`https://api.spotify.com/v1/playlists/${req.params.id}`, {
-        method: 'GET',
-        headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
-      });
-      const data: any = await response.json();
-      const { items } = data.tracks;
+      if(req.body.selectedPlaylists.length < 2) {
+        res.status(400)
+        res.send({message: "Please select at least two playlists."})
+      } else {
+        let mergedPlaylist: any = [];
+        let playlistName = '';
+        console.log(req.body.selectedPlaylists);
+        for (const playlistId of req.body.selectedPlaylists){
+          const playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+          });
+          const data = await playlistRes.json();
+          const { items } = data.tracks;
+          const tracks = items.map((track: any) => track.track)
 
-      res.status(200);
-      res.send(items);
+          mergedPlaylist = [...mergedPlaylist, ...tracks];
+        }
+
+        mergedPlaylist = mergedPlaylist.filter((track: any) => !track.is_local)
+        for(const name of req.body.selectedPlaylistsNames) {
+          playlistName += `${name} + `
+        }
+        res.status(201);
+        res.send({name: playlistName.substring(0, playlistName.length - 3), playlist: mergedPlaylist})
+      }
+    } catch(err) {
+
+    }
+  })
+
+  .post('/compare-playlists', async (req: any, res: any) => {
+    try {
+      if(req.body.selectedPlaylists.length !== 2) {
+        res.status(400);
+        res.send({message: "Please select two playlists."});
+      } else {
+        let playlistContent: any = [];
+        for (const playlistId of req.body.selectedPlaylists){
+          const playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+            method: 'GET',
+            headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+          });
+          const data = await playlistRes.json();
+          const { items } = data.tracks;
+          const tracks = items.map((track: any) => track.track)
+
+          playlistContent.push(tracks)
+        }
+
+        const longerPlaylist = playlistContent[0].length > playlistContent[1].length ? 0 : 1;
+        const shorterPlaylist = playlistContent[0].length > playlistContent[1].length ? 1 : 0;
+        let commonTracks: any = [];
+
+        playlistContent[shorterPlaylist].forEach((trackShorter: any) => {
+          playlistContent[longerPlaylist].forEach((trackLonger: any) => {
+            if(JSON.stringify(trackLonger.artists) === JSON.stringify(trackShorter.artists) && trackLonger.name === trackShorter.name && !trackShorter.is_local && !trackLonger.is_local) {
+              commonTracks.push(trackShorter);
+            }
+          })
+        });
+
+        res.status(201);
+        res.send({name: `${req.body.selectedPlaylistsNames[0]} x ${req.body.selectedPlaylistsNames[1]}`, playlist: commonTracks, message: "Successfully compared playlists."});
+      }
     } catch(err) {
       console.log(err)
     }
@@ -41,7 +97,8 @@ spotifyRoutes
 
   .post('/create-playlist/:id', async (req: any, res: any) => {
     try {
-      const scope = 'playlist-modify-public';
+      console.log(req.body.selectedPlaylist);
+      const uris: string[] = req.body.selectedPlaylist.playlist.map((track: any) => track.uri);
       const body = {
         name: req.body.name,
         description: 'Via commonify.',
@@ -53,14 +110,17 @@ spotifyRoutes
         body: JSON.stringify(body)
       });
       const data = await createPlaylistRes.json();
-
-      const addTracksRes = await fetch(`https://api.spotify.com/v1/playlists/${data.id}/tracks`, {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + req.session.access_token ,'Content-Type':'application/json'},
-        body: JSON.stringify({uris: req.body.uris, position: 0})
-      })
+      
+      for(var i = 0; i < uris.length; i += 100) {
+        const urisSlice = uris.slice(i, i + 100)
+        const addTracksRes = await fetch(`https://api.spotify.com/v1/playlists/${data.id}/tracks`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + req.session.access_token ,'Content-Type':'application/json'},
+          body: JSON.stringify({uris: urisSlice, position: i})
+        })
+      }
       res.status(200);
-      res.send({message: "Successfully created the playlist."})
+      res.send({message: "Successfully created the playlist."});
     } catch(err) {
       console.log(err);
     }

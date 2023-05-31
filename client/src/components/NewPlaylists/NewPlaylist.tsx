@@ -15,7 +15,6 @@ const NewPlaylists = (props: Props) => {
 
   const savePlaylist = async () => {
     try {
-      const uris: string[] = selectedPlaylist.playlist.map((track: any) => track.uri);
       const createPlaylistRes = await app.post(`${process.env.REACT_APP_BACKEND}/api/create-playlist/${window.location.pathname.substring(1)}`, {
         headers: {
           'Content-Type': 'application/json',
@@ -24,24 +23,18 @@ const NewPlaylists = (props: Props) => {
           'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
         },
         name: selectedPlaylist.name,
-        uris: uris,
+        selectedPlaylist: selectedPlaylist,
         'withCredentials': true,
       });
       const { data } = await createPlaylistRes;
 
-      props.setResponseMessage(data.message)
+      props.setResponseMessage(data.message);
+      setTimeout(() => props.setResponseMessage(""), 4000);
 
     } catch(err) {
-
+      console.error(err)
     }
   }
-
-  useEffect(() => {
-    console.log(selectedPlaylist.playlist); 
-  }, [selectedPlaylist]);
-  useEffect(() => {
-    console.log(props.newPlaylists); 
-  }, [props.newPlaylists]);
 
   return (
     <>
@@ -56,17 +49,21 @@ const NewPlaylists = (props: Props) => {
         )}
       </div>
       <div className="h-96 overflow-scroll scrollbar-thin scrollbar-track-none scrollbar-thumb-rounded-md scrollbar-thumb-white bg-[#121212] text-white rounded">
-        {selectedPlaylist.playlist.map((track: any, index: number) => 
-          <div key={index} className="flex flex-row m-1">
-            <img src={track.album.images[0].url} width="60px"></img>
-            <div className="my-auto mx-1">
-              <p>{track.name}</p>
-            </div>
-          </div>
-        )}
+        {selectedPlaylist.playlist.map((track: any, index: number) => {
+          if(!track.is_local) {
+            return (
+              <div key={index} className="flex flex-row m-1">
+                <img src={track.album.images[0].url} width="60px"></img>
+                <div className="my-auto mx-1">
+                  <p>{track.name}</p>
+                </div>
+              </div>
+            )
+          }
+        })}
       </div>
       <div>
-        <button onClick={savePlaylist}>Save Playlist</button>
+        <button className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={savePlaylist}>Save Playlist</button>
       </div>
     </>
   )

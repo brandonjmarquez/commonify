@@ -1,20 +1,20 @@
 import { useEffect } from "react";
 import Playlist from "../Playlist/Playlist";
 
-interface PlaylistListProps {
+interface Props {
   playlists: any
-  selectedPlaylistNames: string[];
+  selectedPlaylists: string[];
+  selectedPlaylistsNames: string[];
   setSelectedPlaylistsHandler: Function;
 }
 
-const PlaylistList = (props: PlaylistListProps) => {
+const PlaylistList = (props: Props) => {
   
   return (
     <div className="h-96 overflow-scroll scrollbar-thin scrollbar-track-none scrollbar-thumb-rounded-md scrollbar-thumb-white bg-[#121212] text-white rounded">
-      {props.playlists.map((playlist: any, index: number) => {
-        if(index > 0)
-          return <Playlist key={index} playlist={playlist} selectedPlaylistNames={props.selectedPlaylistNames} setSelectedPlaylistsHandler={props.setSelectedPlaylistsHandler}/>
-      })}
+      {props.playlists.map((playlist: any, index: number) => 
+        <Playlist key={index} playlist={playlist} selectedPlaylists={props.selectedPlaylists} selectedPlaylistsNames={props.selectedPlaylistsNames} setSelectedPlaylistsHandler={props.setSelectedPlaylistsHandler}/>
+      )}
     </div>
   )
 }

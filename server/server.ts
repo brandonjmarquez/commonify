@@ -24,7 +24,7 @@ const getAll = async () => {
   console.log(rows)
 }
 app.get("/", (req, res) => {
-  getAll();
+  // getAll();
   // req.session!.views = (req.session!.views || 0) + 1
 
   // console.log(req.session!.access_token, "hello")

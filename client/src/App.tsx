@@ -4,7 +4,11 @@ import './App.css';
 import PlaylistList from './components/PlaylistList/PlaylistList';
 import { useParams } from "react-router-dom";
 import NewPlaylists from './components/NewPlaylists/NewPlaylist';
+import PlaylistLists from './components/PlaylistsLists/PlaylistLists';
 
+const app = axios.create({
+  withCredentials: true
+})
 
 const App = () => {
   const loggedIn = useState(false);
@@ -71,16 +75,7 @@ const App = () => {
     if(selectedPlaylists.length > 0)
       (async () => {
         try {
-          // const selected = await axios.get(`http://localhost:3001/api/selected-playlists/${selectedPlaylists}`, {
-          //   method: 'GET',
-          //   headers: {
-          //     'Content-Type': 'application/json',
-          //     'cess-Control-Allow-Origin': 'http://localhost:3002',
-          //     'Access-Control-Allow-Credentials': true
-          //   },
-          //   'withCredentials':true
-          // });
-          // console.log(selected.data)
+          
         } catch(err) {
           console.error(err);
         }
@@ -118,51 +113,54 @@ const App = () => {
   }
 
   const mergePlaylists = async () => {
-    
+    try {
+      const playlistRes = await app.post(`${process.env.REACT_APP_BACKEND}/api/merge-playlists`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Credentials': true,
+          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+        },
+        selectedPlaylists: selectedPlaylists,
+        selectedPlaylistsNames: selectedPlaylistsNames,
+        'withCredentials':true
+      });
+      const { data } = playlistRes;
+
+      setResponseMessage(data.message);
+      setTimeout(() => setResponseMessage(""), 4000);
+      setNewPlaylists((newPlaylists: any) => [...newPlaylists, {name: data.name, playlist: data.playlist}]);
+      clearSelected();
+    } catch(err: any) {
+      setResponseMessage(err.response.data.message);
+      setTimeout(() => setResponseMessage(""), 4000);
+    }
   }
 
   const comparePlaylists = async () => {
     try {
-      if(selectedPlaylists.length !== 2) {
-        setResponseMessage("Please select two playlists.")
-        setTimeout(() => setResponseMessage(""), 4000)
-      } else {
-        let playlistContent: any = [];
-        for (const playlist of selectedPlaylists){
-          const playlistRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/selected-playlists/${playlist}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': 'http://localhost:3000',
-              'Access-Control-Allow-Credentials': true,
-              'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
-            },
-            'withCredentials':true
-          });
-          const { data } = playlistRes;
-          const tracks = data.map((track: any) => track.track)
+      const playlistRes = await app.post(`${process.env.REACT_APP_BACKEND}/api/compare-playlists`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Credentials': true,
+          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+        },
+        selectedPlaylists: selectedPlaylists,
+        selectedPlaylistsNames: selectedPlaylistsNames,
+        'withCredentials':true
+      });
+      const { data } = playlistRes;
 
-          playlistContent.push(tracks)
-        }
-        const longerPlaylist = playlistContent[0].length > playlistContent[1].length ? 0 : 1;
-        const shorterPlaylist = playlistContent[0].length > playlistContent[1].length ? 1 : 0;
-        let commonTracks: any = [];
-
-        playlistContent[shorterPlaylist].forEach((trackShorter: any) => {
-          playlistContent[longerPlaylist].forEach((trackLonger: any) => {
-            if(JSON.stringify(trackLonger.artists) === JSON.stringify(trackShorter.artists) && trackLonger.name === trackShorter.name) {
-              commonTracks.push(trackShorter);
-            }
-          })
-        });
-
-        if(commonTracks.length > 0) {
-          setNewPlaylists((newPlaylists: any) => [...newPlaylists, {name: `${selectedPlaylistsNames[0]} x ${selectedPlaylistsNames[1]}`, playlist: commonTracks}])
-        }
-      }
+      setResponseMessage(data.message);
+      setTimeout(() => setResponseMessage(""), 4000);
+      setNewPlaylists((newPlaylists: any) => [...newPlaylists, {name: data.name, playlist: data.playlist}])
       clearSelected();
-    } catch(err) {
-      console.error(err);
+    } catch(err: any) {
+      setResponseMessage(err.response.data.message);
+      setTimeout(() => setResponseMessage(""), 4000);
     }
   }
 
@@ -182,11 +180,16 @@ const App = () => {
         <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={clearSelected}>Clear Selected</button>
       </div>
       {responseMessage.length > 0 ? <p className="text-red-500">{responseMessage}</p> : <br></br>}
-      {selectedPlaylistsNames.length > 0 ? <p className="text-red-500">{[selectedPlaylistsNames ,selectedPlaylists]}</p> : <br></br>}
-      <div className="grid grid-cols-2">
-        <PlaylistList playlists={playlists} selectedPlaylistNames={selectedPlaylistsNames} setSelectedPlaylistsHandler={setSelectedPlaylistsHandler}/>
-        <PlaylistList playlists={playlists} selectedPlaylistNames={selectedPlaylistsNames} setSelectedPlaylistsHandler={setSelectedPlaylistsHandler}/>
-      </div>
+      {selectedPlaylistsNames.length > 0 ? 
+        selectedPlaylistsNames.map((playlistName: string, index: number) => 
+          <button key={index} className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-2 px-2"
+          onClick={() => setSelectedPlaylistsHandler({id: selectedPlaylists[selectedPlaylistsNames.indexOf(playlistName)], name: playlistName})}
+          >
+            {playlistName}
+          </button>
+        ) : <br></br>
+      }
+      <PlaylistLists code={code} playlists={playlists} selectedPlaylists={selectedPlaylists} selectedPlaylistsNames={selectedPlaylistsNames} setSelectedPlaylistsHandler={setSelectedPlaylistsHandler}/>      
       {newPlaylists.length > 0 ? <div className="grid grid-cols-3">
         <NewPlaylists newPlaylists={newPlaylists} setResponseMessage={setResponseMessage} />
       </div> : null}
