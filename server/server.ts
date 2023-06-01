@@ -1,37 +1,22 @@
 import express from 'express';
-import { Request, Response, NextFunction } from 'express';
 import cookieSession from 'cookie-session';
 const app = express();
-import mysql from 'mysql2';
 import fetch from 'node-fetch';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import querystring from 'node:querystring';
+import CryptoJS from "crypto-js";
 import * as dotenv from 'dotenv';
-dotenv.config();
-import pool from './util/dbconfig.js';
+  dotenv.config();
+import client from './util/redis.js';
 import spotifyRoutes from './routes/spotifyRoutes.js';
+import friendRoutes from './routes/friendRoutes.js';
 import refreshAccessToken from './middlewares/refreshAccessToken.js'
 
 const PORT = process.env.SERVER_PORT || 3001;
 var client_id = process.env.client_id!; // Your client id
 var client_secret = process.env.client_secret!; // Your secret
 var redirect_uri = `${process.env.BACKEND_URI}/callback`; // Your redirect uri
-
-const getAll = async () => {
-  const sql = 'SELECT * FROM test_table';
-  const [rows] = await pool.promise().query(sql);
-  console.log(rows)
-}
-app.get("/", (req, res) => {
-  // getAll();
-  // req.session!.views = (req.session!.views || 0) + 1
-
-  // console.log(req.session!.access_token, "hello")
-  // res.end(req.session!.views + ' views');
-  // return res.send("Session set")
-});
-
 var generateRandomString = function(length: number) {
   var text = '';
   var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -52,14 +37,18 @@ app
   .use(cookieParser())
   .use(cookieSession({
     name: 'Brandon',
-    keys: ['change_this'],
+    keys: [process.env.cookie_key!],
     maxAge: 24 * 60 * 60 * 1000,
     secure: false
   }))
   .use(express.urlencoded({ extended: true }))
   .use(express.json());
 
-app.get('/auth/login', function(req: any, res: any) {
+client.on('error', (err: any) => console.log('Redis Client Error', err));
+
+await client.connect();
+
+app.get('/auth/login', (req: any, res: any) => {
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -112,15 +101,13 @@ app.get('/callback', async (req: any, res: any) => {
     };
 
     const authRes = await fetch('https://accounts.spotify.com/api/token', authOptions);
-    // console.log(authRes)
     const data: any = await authRes.json();
-    // console.log(data);
+
     if(authRes.status === 200) {
       const access_token = data.access_token,
           refresh_token = data.refresh_token;
 
       const options = {
-        url: 'https://api.spotify.com/v1/me',
         method: 'GET',
         headers: { 'Authorization': 'Bearer ' + access_token },
       };
@@ -130,8 +117,15 @@ app.get('/callback', async (req: any, res: any) => {
       const profileData: any = await profileRes.json();
       const { id } = profileData;
 
+      if(!await client.get(id + '_refresh')) {
+        var cipherToken = CryptoJS.AES.encrypt(refresh_token, process.env.cookie_key!).toString();
+        
+        client.set(id + '_refresh', cipherToken);
+        client.set(id + '_access', access_token);
+      }
+
       // we can also pass the token to the browser to make requests from there
-      req.session.access_token = access_token;
+      req.session.access_token = 'access_token';
       req.session.refresh_token = refresh_token;
       res.redirect(process.env.FRONTEND_URI + '/' + id);
     } else {
@@ -181,7 +175,9 @@ app.get('/auth/is-logged-in', async (req: any, res: any, next) => {
   }
 }, refreshAccessToken(client_id, client_secret));
 
-app.use('/api', spotifyRoutes);
+app
+  .use('/api', spotifyRoutes)
+  .use('/api', friendRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`)

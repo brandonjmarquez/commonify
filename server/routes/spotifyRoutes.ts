@@ -1,5 +1,4 @@
 import express from 'express';
-import querystring from 'node:querystring';
 
 const spotifyRoutes = express.Router();
 
@@ -11,12 +10,22 @@ spotifyRoutes
           headers: { 'Authorization': 'Bearer ' + req.session.access_token },
         });
         const data = await response.json()
-        
-        res.status(200);
-        res.send(data);
+        const { items } = data;
+        if(data.items) {
+          if(data.items.length > 0) {
+            res.status(200);
+            res.send({playlists: data.items, message: "Playlists loaded successfully."});
+          } else {
+            res.status(200);
+            res.send({message: "No Playlists Found."});
+          }
+        } else {
+          res.status(401);
+          res.send({message: 'Invalid Token.'})
+        }
       } else {
         res.status(200);
-        res.redirect(`http://localhost:3002/${req.params.id}`)
+        res.redirect(`http://localhost:3000/${req.params.id}`)
       }
     } catch(err) {
       console.error(err)
@@ -31,14 +40,14 @@ spotifyRoutes
       } else {
         let mergedPlaylist: any = [];
         let playlistName = '';
-        console.log(req.body.selectedPlaylists);
+
         for (const playlistId of req.body.selectedPlaylists){
-          const playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+          const playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             method: 'GET',
             headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
           });
           const data = await playlistRes.json();
-          const { items } = data.tracks;
+          const { items } = data;
           const tracks = items.map((track: any) => track.track)
 
           mergedPlaylist = [...mergedPlaylist, ...tracks];
@@ -49,7 +58,7 @@ spotifyRoutes
           playlistName += `${name} + `
         }
         res.status(201);
-        res.send({name: playlistName.substring(0, playlistName.length - 3), playlist: mergedPlaylist})
+        res.send({name: playlistName.substring(0, playlistName.length - 3), playlist: mergedPlaylist, message: "Playlists merged successfully."})
       }
     } catch(err) {
 
@@ -64,14 +73,26 @@ spotifyRoutes
       } else {
         let playlistContent: any = [];
         for (const playlistId of req.body.selectedPlaylists){
-          const playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+          let playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             method: 'GET',
             headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
           });
-          const data = await playlistRes.json();
-          const { items } = data.tracks;
-          const tracks = items.map((track: any) => track.track)
+          let data = await playlistRes.json();
+          let offset = 100;
+          let tracksFull = data.items;
+          while(data.items.length === 100) {
+            let playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}`, {
+              method: 'GET',
+              headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+            });
 
+            offset += 100;
+            data = await playlistRes.json();
+            tracksFull = [...tracksFull, ...data.items];
+          }
+
+          const tracks = tracksFull.map((track: any) => track.track)
+          
           playlistContent.push(tracks)
         }
 
@@ -80,8 +101,8 @@ spotifyRoutes
         let commonTracks: any = [];
 
         playlistContent[shorterPlaylist].forEach((trackShorter: any) => {
-          playlistContent[longerPlaylist].forEach((trackLonger: any) => {
-            if(JSON.stringify(trackLonger.artists) === JSON.stringify(trackShorter.artists) && trackLonger.name === trackShorter.name && !trackShorter.is_local && !trackLonger.is_local) {
+          playlistContent[longerPlaylist].filter((trackLonger: any) => {
+            if(trackLonger && trackShorter && JSON.stringify(trackLonger.artists) === JSON.stringify(trackShorter.artists) && trackLonger.name === trackShorter.name && !trackShorter.is_local && !trackLonger.is_local) {
               commonTracks.push(trackShorter);
             }
           })
@@ -97,7 +118,6 @@ spotifyRoutes
 
   .post('/create-playlist/:id', async (req: any, res: any) => {
     try {
-      console.log(req.body.selectedPlaylist);
       const uris: string[] = req.body.selectedPlaylist.playlist.map((track: any) => track.uri);
       const body = {
         name: req.body.name,
