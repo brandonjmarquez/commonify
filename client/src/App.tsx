@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { AiFillCopy } from 'react-icons/ai';
 import './App.css';
 import PlaylistList from './components/PlaylistList/PlaylistList';
 import { useParams } from "react-router-dom";
@@ -11,42 +12,27 @@ const app = axios.create({
 })
 
 const App = () => {
-  const loggedIn = useState(false);
   const [playlists, setPlaylists] = useState<any>([]);
+  const [friendPlaylists, setFriendPlaylists] = useState<any>([]);
   const [selectedPlaylists, setSelectedPlaylists] = useState<string[]>([]);
   const [selectedPlaylistsNames, setSelectedPlaylistsNames] = useState<string[]>([]);
   const [newPlaylists, setNewPlaylists] = useState<{name: string, playlist: any}[]>([]);
-  const [code, setCode] = useState(0);
+  const [code, setCode] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
+  const [lastToken, setLastToken] = useState(new Date());
   let { id } = useParams(); 
 
   useEffect(() => {
-    const relogin = async (count: number) => {
-      try {
-        const authRes = await axios.get('http://localhost:3001/auth/relogin', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': 'http://localhost:3000',
-            'Access-Control-Allow-Credentials': true
-          },
-          'withCredentials':true
-        })
-        const { data } = authRes;
+    console.log(new Date().valueOf() - lastToken.valueOf());
+    if (new Date().valueOf() - lastToken.valueOf() > 3600000) {
+      relogin();
+    }
+  });
 
-        if(authRes.status === 200 && count > 0) {
-          setResponseMessage("No Playlists Found!")
-        } else {
-          getPlaylists(count++);
-        }
-      } catch(err) {
-        console.error(err);
-      }
-    };
-
-    const getPlaylists = async (count: number) => {
+  useEffect(() => {
+    const getPlaylists = async () => {
       try {
-        const playlistsRes = await axios.get(`http://localhost:3001/api/get-playlists/${id}`, {
+        const playlistsRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -57,42 +43,57 @@ const App = () => {
           'withCredentials':true
         })
         const { data } = playlistsRes;
-
-        if(data.items) {
-          setPlaylists(data.items)
+        console.log(data);
+        if(data.playlists) {
+          setPlaylists(data.playlists)
+          
           return data.items;
         } else {
-          relogin(count);
+          setResponseMessage(data.message)
         }
+      } catch(err) {
+        relogin();
+        console.log(2);
+        console.error(err);
+      }
+    }
+    getPlaylists();
+    setCode(window.location.hash.substring(1));
+  }, []);
+
+  useEffect(() => {
+    const getFriendPlaylists = async () => {
+      try {
+        const codeRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-friend-playlists/${code}`);
+        const { data } = codeRes;
+        console.log(code);
+        setFriendPlaylists(data.playlists);
       } catch(err) {
         console.error(err);
       }
     }
-    getPlaylists(0);
-  }, []);
-
-  useEffect(() => {
-    if(selectedPlaylists.length > 0)
-      (async () => {
-        try {
-          
-        } catch(err) {
-          console.error(err);
-        }
-      })()
-  }, [selectedPlaylists]);
-
-  useEffect(() => {
-    if(code.toString().length === 5) {
-      (async () => {
-        try {
-
-        } catch(err) {
-
-        }
-      })()
+    if(code.length > 0) {
+      getFriendPlaylists()
     }
   }, [code]);
+
+  const relogin = async () => {
+    try {
+      const authRes = await axios.get(`${process.env.REACT_APP_BACKEND}/auth/relogin`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Credentials': true
+        },
+        'withCredentials':true
+      });
+      setLastToken(new Date());
+      window.location.reload();
+    } catch(err) {
+      console.error(err);
+    }
+  };
 
   const setSelectedPlaylistsHandler = (playlistInfo: {id: string, name: string}) => {
     if(selectedPlaylists.includes(playlistInfo.id) && selectedPlaylistsNames.includes(playlistInfo.name)) {
@@ -110,6 +111,18 @@ const App = () => {
       setSelectedPlaylists((selectedPlaylists) => [...selectedPlaylists, playlistInfo.id])
       setSelectedPlaylistsNames((selectedPlaylistsNames) => [...selectedPlaylistsNames, playlistInfo.name])
     }
+  }
+
+  const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const formData = [...new FormData(e.target as HTMLFormElement)]
+      .reduce((a: any, [key, value]: any) => {
+        a[key] = value;
+        return a;
+      }, {});
+    window.location.hash = formData.code;
+    setCode(formData.code);
   }
 
   const mergePlaylists = async () => {
@@ -156,7 +169,7 @@ const App = () => {
 
       setResponseMessage(data.message);
       setTimeout(() => setResponseMessage(""), 4000);
-      setNewPlaylists((newPlaylists: any) => [...newPlaylists, {name: data.name, playlist: data.playlist}])
+      setNewPlaylists((newPlaylists: any) => [...newPlaylists, {name: data.name, playlist: data.playlist}]);
       clearSelected();
     } catch(err: any) {
       setResponseMessage(err.response.data.message);
@@ -165,15 +178,27 @@ const App = () => {
   }
 
   const clearSelected = () => {
-    setSelectedPlaylists([]); 
-    setSelectedPlaylistsNames([])
+    setSelectedPlaylists([]);
+    setSelectedPlaylistsNames([]);
   }
 
   return (
     <>
-      <p>Your Code: </p>
-      <label>Enter Code: </label>
-      <input type="number" onChange={(e) => setCode(parseInt(e.target.value))}></input>
+      <p>Your Code: <span id="my-code">{window.location.pathname.substring(1)}</span>
+        <button onClick={() => {
+          // Get the text field
+          var copyText = document.getElementById("my-code");
+
+          // Copy the text inside the text field
+          navigator.clipboard.writeText(copyText!.innerHTML);
+
+        }}><AiFillCopy /></button>
+      </p>
+      <form onSubmit={submitHandler}>
+        <label>Enter Code: </label>
+        <input type="text" name="code"></input>
+        <button type="submit" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1">Connect</button>
+      </form>
       <div>
         <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={mergePlaylists}>Merge Playlists</button>
         <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={comparePlaylists}>Compare Playlists</button>
@@ -189,7 +214,7 @@ const App = () => {
           </button>
         ) : <br></br>
       }
-      <PlaylistLists code={code} playlists={playlists} selectedPlaylists={selectedPlaylists} selectedPlaylistsNames={selectedPlaylistsNames} setSelectedPlaylistsHandler={setSelectedPlaylistsHandler}/>      
+      <PlaylistLists code={code} playlists={playlists} friendPlaylists={friendPlaylists} selectedPlaylists={selectedPlaylists} selectedPlaylistsNames={selectedPlaylistsNames} setSelectedPlaylistsHandler={setSelectedPlaylistsHandler}/>
       {newPlaylists.length > 0 ? <div className="grid grid-cols-3">
         <NewPlaylists newPlaylists={newPlaylists} setResponseMessage={setResponseMessage} />
       </div> : null}

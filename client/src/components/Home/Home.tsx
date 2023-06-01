@@ -6,7 +6,7 @@ const Home = () => {
   useEffect(() => {
     (async () => {
       try {
-        var uri = `http://localhost:3001/auth/is-logged-in`
+        var uri = `${process.env.REACT_APP_BACKEND}/auth/is-logged-in`
         var options = {
           method: 'GET',
           mode: 'cors',
@@ -28,7 +28,7 @@ const Home = () => {
 
   return (
     <>
-      <button onClick={ () => window.open('http://localhost:3001/auth/login', '_self') }>Log In</button>
+      <button onClick={ () => window.open(`${process.env.REACT_APP_BACKEND}/auth/login`, '_self') }>Log In</button>
     </>
   );
 }
