@@ -16,7 +16,7 @@ const Playlist = (props: PlaylistProps) => {
   }, [props.selectedPlaylists]);
 
   return (
-    <button className={`block w-full${active ? ' bg-zinc-700' : ' hover:bg-zinc-800'}`} onClick={() => {
+    <button className={`block w-full${active ? ' bg-zinc-700' : ' hover:bg-zinc-800'} text-left`} onClick={() => {
       props.setSelectedPlaylistsHandler({id: props.playlist.id, name: props.playlist.name})
       setActive(!active);
     }}>

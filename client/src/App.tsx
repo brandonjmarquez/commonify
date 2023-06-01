@@ -52,7 +52,6 @@ const App = () => {
         }
       } catch(err) {
         relogin();
-        console.log(2);
         console.error(err);
       }
     }
@@ -183,41 +182,44 @@ const App = () => {
 
   return (
     <>
-      <p>Your Code: <span id="my-code">{window.location.pathname.substring(1)}</span>
-        <button className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-sm m-1"
-          onClick={() => {
-            // Get the text field
-            var copyText = document.getElementById("my-code");
+      <div className="sticky top-0 bg-[#535353]">
+        <label htmlFor="my-code" className="text-white">Your Code: </label>
+        <input id="my-code" className="bg-[#535353] text-white" value={window.location.pathname.substring(1)} readOnly></input>
+          <button className="bg-white text-black hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-sm m-1"
+            onClick={async () => {
+              var copyText: HTMLInputElement = document.querySelector("#my-code")!;
 
-            // Copy the text inside the text field
-            navigator.clipboard.writeText(copyText!.innerHTML);
-          }
-        }><AiFillCopy /></button>
-      </p>
-      <form onSubmit={submitHandler}>
-        <label>Enter Code: </label>
-        <input type="text" name="code"></input>
-        <button type="submit" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1">Connect</button>
-      </form>
-      <div>
-        <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={mergePlaylists}>Merge Playlists</button>
-        <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={comparePlaylists}>Compare Playlists</button>
-        <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={clearSelected}>Clear Selected</button>
+              // Select the text field
+              copyText!.select();
+              copyText!.setSelectionRange(0, 99999); // For mobile devices
+
+              // Copy the text inside the text field
+              await navigator.clipboard.writeText('11111');
+            }
+          }><AiFillCopy /></button>
+        <form className="" onSubmit={submitHandler}>
+          <label className="text-white">Enter Code: </label>
+          <input type="text" name="code"></input>
+          <button type="submit" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1">Connect</button>
+        </form>
+        <div>
+          <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={mergePlaylists}>Merge Playlists</button>
+          <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={comparePlaylists}>Compare Playlists</button>
+          <button type="button" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1" onClick={clearSelected}>Clear Selected</button>
+        </div>
+        {responseMessage.length > 0 ? <p className="text-red-500">{responseMessage}</p> : <br></br>}
+        {selectedPlaylistsNames.length > 0 ? 
+          selectedPlaylistsNames.map((playlistName: string, index: number) => 
+            <button key={index} className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-2 px-2"
+            onClick={() => setSelectedPlaylistsHandler({id: selectedPlaylists[selectedPlaylistsNames.indexOf(playlistName)], name: playlistName})}
+            >
+              {playlistName}
+            </button>
+          ) : <br></br>
+        }
       </div>
-      {responseMessage.length > 0 ? <p className="text-red-500">{responseMessage}</p> : <br></br>}
-      {selectedPlaylistsNames.length > 0 ? 
-        selectedPlaylistsNames.map((playlistName: string, index: number) => 
-          <button key={index} className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-2 px-2"
-          onClick={() => setSelectedPlaylistsHandler({id: selectedPlaylists[selectedPlaylistsNames.indexOf(playlistName)], name: playlistName})}
-          >
-            {playlistName}
-          </button>
-        ) : <br></br>
-      }
       <PlaylistLists code={code} playlists={playlists} friendPlaylists={friendPlaylists} selectedPlaylists={selectedPlaylists} selectedPlaylistsNames={selectedPlaylistsNames} setSelectedPlaylistsHandler={setSelectedPlaylistsHandler}/>
-      {newPlaylists.length > 0 ? <div className="grid grid-cols-3">
-        <NewPlaylists newPlaylists={newPlaylists} setResponseMessage={setResponseMessage} />
-      </div> : null}
+      {newPlaylists.length > 0 ? <NewPlaylists newPlaylists={newPlaylists} setResponseMessage={setResponseMessage} /> : null}
     </>
   );
 }

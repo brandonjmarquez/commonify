@@ -14,7 +14,7 @@ interface Props {
 const PlaylistLists = (props: Props) => {
 
   return (
-    <div className="grid grid-cols-2">
+    <div className="grid grid-rows-2 md:grid-cols-2 m-10 md:m-0">
       <PlaylistList playlists={props.playlists} selectedPlaylists={props.selectedPlaylists} selectedPlaylistsNames={props.selectedPlaylistsNames} setSelectedPlaylistsHandler={props.setSelectedPlaylistsHandler}/>
       <PlaylistList playlists={props.friendPlaylists} selectedPlaylists={props.selectedPlaylists} selectedPlaylistsNames={props.selectedPlaylistsNames} setSelectedPlaylistsHandler={props.setSelectedPlaylistsHandler}/>
     </div>
