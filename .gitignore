@@ -3,3 +3,4 @@ authentication
 dist
 ./docker-compose.yml
 .env
+.DS_Store
