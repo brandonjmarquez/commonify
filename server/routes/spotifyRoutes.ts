@@ -25,7 +25,7 @@ spotifyRoutes
         }
       } else {
         res.status(200);
-        res.redirect(`http://localhost:3000/${req.params.id}`)
+        res.redirect(`${process.env.REACT_APP_FRONTEND}/${req.params.id}`)
       }
     } catch(err) {
       console.error(err)

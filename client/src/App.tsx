@@ -23,7 +23,6 @@ const App = () => {
   let { id } = useParams(); 
 
   useEffect(() => {
-    console.log(new Date().valueOf() - lastToken.valueOf());
     if (new Date().valueOf() - lastToken.valueOf() > 3600000) {
       relogin();
     }
@@ -36,14 +35,14 @@ const App = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': 'http://localhost:3000',
+            'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
             'Access-Control-Allow-Credentials': true,
             'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
           },
           'withCredentials':true
         })
         const { data } = playlistsRes;
-        console.log(data);
+
         if(data.playlists) {
           setPlaylists(data.playlists)
           
@@ -66,7 +65,7 @@ const App = () => {
       try {
         const codeRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-friend-playlists/${code}`);
         const { data } = codeRes;
-        console.log(code);
+
         setFriendPlaylists(data.playlists);
       } catch(err) {
         console.error(err);
@@ -83,7 +82,7 @@ const App = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
           'Access-Control-Allow-Credentials': true
         },
         'withCredentials':true
@@ -131,7 +130,7 @@ const App = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
           'Access-Control-Allow-Credentials': true,
           'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
         },
@@ -157,7 +156,7 @@ const App = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
           'Access-Control-Allow-Credentials': true,
           'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
         },
@@ -185,14 +184,15 @@ const App = () => {
   return (
     <>
       <p>Your Code: <span id="my-code">{window.location.pathname.substring(1)}</span>
-        <button onClick={() => {
-          // Get the text field
-          var copyText = document.getElementById("my-code");
+        <button className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-sm m-1"
+          onClick={() => {
+            // Get the text field
+            var copyText = document.getElementById("my-code");
 
-          // Copy the text inside the text field
-          navigator.clipboard.writeText(copyText!.innerHTML);
-
-        }}><AiFillCopy /></button>
+            // Copy the text inside the text field
+            navigator.clipboard.writeText(copyText!.innerHTML);
+          }
+        }><AiFillCopy /></button>
       </p>
       <form onSubmit={submitHandler}>
         <label>Enter Code: </label>

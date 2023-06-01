@@ -18,7 +18,7 @@ const NewPlaylists = (props: Props) => {
       const createPlaylistRes = await app.post(`${process.env.REACT_APP_BACKEND}/api/create-playlist/${window.location.pathname.substring(1)}`, {
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
           'Access-Control-Allow-Credentials': true,
           'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
         },
