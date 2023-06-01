@@ -5,6 +5,7 @@ const spotifyRoutes = express.Router();
 spotifyRoutes
   .get('/get-playlists/:id', async (req: any, res: any) => {
     try {
+      console.log(req.session.refresh_token)
       if(req.session.refresh_token) {
         const response = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, {
           headers: { 'Authorization': 'Bearer ' + req.session.access_token },
@@ -26,9 +27,10 @@ spotifyRoutes
           res.send({message: 'Invalid Token.'})
         }
       } else {
-        console.log('User not logged in.')
+        console.log(`User: ${req.params.id} not logged in.`)
         res.status(200);
-        res.redirect(`${process.env.REACT_APP_FRONTEND}/${req.params.id}`)
+        res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+        res.redirect(`${process.env.FRONTEND_URI}`)
       }
     } catch(err) {
       console.error(err)
@@ -132,7 +134,7 @@ spotifyRoutes
       };
       const createPlaylistRes = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, {
         method: "POST",
-        headers: { 'Authorization': 'Bearer ' + req.session.access_token ,'Content-Type':'application/json'},
+        headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
         body: JSON.stringify(body)
       });
       const data = await createPlaylistRes.json();
@@ -141,7 +143,7 @@ spotifyRoutes
         const urisSlice = uris.slice(i, i + 100)
         const addTracksRes = await fetch(`https://api.spotify.com/v1/playlists/${data.id}/tracks`, {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + req.session.access_token ,'Content-Type':'application/json'},
+          headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
           body: JSON.stringify({uris: urisSlice, position: i})
         })
       }

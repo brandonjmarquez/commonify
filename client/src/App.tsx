@@ -19,7 +19,7 @@ const App = () => {
   const [code, setCode] = useState('');
   const [responseMessage, setResponseMessage] = useState('');
   const [lastToken, setLastToken] = useState(new Date());
-  let { id } = useParams(); 
+  const { id } = useParams(); 
 
   useEffect(() => {
     if (new Date().valueOf() - lastToken.valueOf() > 3600000) {
@@ -28,7 +28,6 @@ const App = () => {
   });
 
   useEffect(() => {
-    console.log(id);
     const getPlaylists = async () => {
       try {
         const playlistsRes = await app.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/${id}`, {
@@ -38,17 +37,18 @@ const App = () => {
             'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
             'Access-Control-Allow-Credentials': true,
             'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+            // 'Location': id
           },
           'withCredentials':true
-        })
+        });
         const { data } = playlistsRes;
 
         if(data.playlists) {
-          setPlaylists(data.playlists)
+          setPlaylists(data.playlists);
           
           return data.items;
         } else {
-          setResponseMessage(data.message)
+          setResponseMessage(data.message);
         }
       } catch(err) {
         relogin();
@@ -71,7 +71,7 @@ const App = () => {
       }
     }
     if(code.length > 0) {
-      getFriendPlaylists()
+      getFriendPlaylists();
     }
   }, [code]);
 
@@ -106,8 +106,8 @@ const App = () => {
         return state;
       })
     } else {
-      setSelectedPlaylists((selectedPlaylists) => [...selectedPlaylists, playlistInfo.id])
-      setSelectedPlaylistsNames((selectedPlaylistsNames) => [...selectedPlaylistsNames, playlistInfo.name])
+      setSelectedPlaylists((selectedPlaylists) => [...selectedPlaylists, playlistInfo.id]);
+      setSelectedPlaylistsNames((selectedPlaylistsNames) => [...selectedPlaylistsNames, playlistInfo.name]);
     }
   }
 

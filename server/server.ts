@@ -39,7 +39,7 @@ app
     name: 'Brandon',
     keys: [process.env.cookie_key!],
     maxAge: 24 * 60 * 60 * 1000,
-    secure: false
+    secure: false,
   }))
   .use(express.urlencoded({ extended: true }))
   .use(express.json());

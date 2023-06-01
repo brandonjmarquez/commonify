@@ -3,6 +3,7 @@ const spotifyRoutes = express.Router();
 spotifyRoutes
     .get('/get-playlists/:id', async (req, res) => {
     try {
+        console.log(req.session.refresh_token);
         if (req.session.refresh_token) {
             const response = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, {
                 headers: { 'Authorization': 'Bearer ' + req.session.access_token },
@@ -27,9 +28,10 @@ spotifyRoutes
             }
         }
         else {
-            console.log('User not logged in.');
+            console.log(`User: ${req.params.id} not logged in.`);
             res.status(200);
-            res.redirect(`${process.env.REACT_APP_FRONTEND}/${req.params.id}`);
+            res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+            res.redirect(`${process.env.FRONTEND_URI}`);
         }
     }
     catch (err) {

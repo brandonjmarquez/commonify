@@ -4,3 +4,6 @@ authentication
 .env
 .DS_Store
 pem
+build
+# Local Netlify folder
+.netlify
