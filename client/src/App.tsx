@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useParams } from "react-router-dom";
 import axios from 'axios';
 import { AiFillCopy } from 'react-icons/ai';
-import './App.css';
-import PlaylistList from './components/PlaylistList/PlaylistList';
-import { useParams } from "react-router-dom";
-import NewPlaylists from './components/NewPlaylists/NewPlaylist';
+import NewPlaylists from './components/NewPlaylists/NewPlaylists';
 import PlaylistLists from './components/PlaylistsLists/PlaylistLists';
+import './App.css';
 
 const app = axios.create({
   withCredentials: true
@@ -29,6 +28,7 @@ const App = () => {
   });
 
   useEffect(() => {
+    console.log(id);
     const getPlaylists = async () => {
       try {
         const playlistsRes = await app.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/${id}`, {

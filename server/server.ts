@@ -124,6 +124,8 @@ app.get('/callback', async (req: any, res: any) => {
         client.set(id + '_access', access_token);
       }
 
+      console.log(`Logged in ${id}.`)
+
       // we can also pass the token to the browser to make requests from there
       req.session.access_token = access_token;
       req.session.refresh_token = refresh_token;
@@ -139,6 +141,7 @@ app.get('/callback', async (req: any, res: any) => {
 
 app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (req: any, res: any, next) => {
   try {
+    console.log("Relogged in.")
     res.status(200);
     res.send();
   } catch(err) {
@@ -165,6 +168,8 @@ app.get('/auth/is-logged-in', async (req: any, res: any, next) => {
         });
         const profileData: any = await profileRes.json();
 
+        console.log(`${profileData.id} is already logged in.\n\tLogging them back in.`);
+        res.status(200);
         res.send(profileData.id)
       }
     } else {

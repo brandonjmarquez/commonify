@@ -12,6 +12,7 @@ spotifyRoutes
         const data = await response.json()
         const { items } = data;
         if(data.items) {
+          console.log(`Playlists fetched.`)
           if(data.items.length > 0) {
             res.status(200);
             res.send({playlists: data.items, message: "Playlists loaded successfully."});
@@ -20,10 +21,12 @@ spotifyRoutes
             res.send({message: "No Playlists Found."});
           }
         } else {
+          console.log('Invalid Token')
           res.status(401);
           res.send({message: 'Invalid Token.'})
         }
       } else {
+        console.log('User not logged in.')
         res.status(200);
         res.redirect(`${process.env.REACT_APP_FRONTEND}/${req.params.id}`)
       }
@@ -57,6 +60,8 @@ spotifyRoutes
         for(const name of req.body.selectedPlaylistsNames) {
           playlistName += `${name} + `
         }
+
+        console.log(`Playlists merged.`);
         res.status(201);
         res.send({name: playlistName.substring(0, playlistName.length - 3), playlist: mergedPlaylist, message: "Playlists merged successfully."})
       }
@@ -108,6 +113,7 @@ spotifyRoutes
           })
         });
 
+        console.log(`Playlists compared.`);
         res.status(201);
         res.send({name: `${req.body.selectedPlaylistsNames[0]} x ${req.body.selectedPlaylistsNames[1]}`, playlist: commonTracks, message: "Successfully compared playlists."});
       }
@@ -139,6 +145,8 @@ spotifyRoutes
           body: JSON.stringify({uris: urisSlice, position: i})
         })
       }
+
+      console.log(`Playlist created.`);
       res.status(200);
       res.send({message: "Successfully created the playlist."});
     } catch(err) {

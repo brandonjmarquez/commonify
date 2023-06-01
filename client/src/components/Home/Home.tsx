@@ -18,8 +18,10 @@ const Home = () => {
           'withCredentials': true
         }
         
-        const playlists = await axios.get(uri, options)
-        .then((res) => {if(res.data.length > 0) window.location.replace(`${window.location.href}${res.data}`)});
+        const playlists = await axios.get(uri, options);
+        const { data } = playlists
+        if(data.length > 0) 
+          window.location.replace(`${window.location.href}${data}`);
       } catch(err) {
         console.error(err);
       }

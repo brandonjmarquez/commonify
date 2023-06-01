@@ -105,6 +105,7 @@ app.get('/callback', async (req, res) => {
                 client.set(id + '_refresh', cipherToken);
                 client.set(id + '_access', access_token);
             }
+            console.log(`Logged in ${id}.`);
             // we can also pass the token to the browser to make requests from there
             req.session.access_token = access_token;
             req.session.refresh_token = refresh_token;
@@ -120,6 +121,7 @@ app.get('/callback', async (req, res) => {
 });
 app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (req, res, next) => {
     try {
+        console.log("Relogged in.");
         res.status(200);
         res.send();
     }
@@ -145,6 +147,8 @@ app.get('/auth/is-logged-in', async (req, res, next) => {
                     headers: { 'Authorization': 'Bearer ' + req.session.access_token },
                 });
                 const profileData = await profileRes.json();
+                console.log(`${profileData.id} is already logged in.\n\tLogging them back in.`);
+                res.status(200);
                 res.send(profileData.id);
             }
         }
