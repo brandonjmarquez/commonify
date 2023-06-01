@@ -32,7 +32,7 @@ const App = () => {
     console.log(id);
     const getPlaylists = async () => {
       try {
-        const playlistsRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/${id}`, {
+        const playlistsRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
