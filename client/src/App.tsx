@@ -31,7 +31,7 @@ const App = () => {
   useEffect(() => {
     const getPlaylists = async () => {
       try {
-        const playlistsRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/${id}`, {
+        const playlistsRes = await app.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ const App = () => {
   useEffect(() => {
     const getFriendPlaylists = async () => {
       try {
-        const codeRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-friend-playlists/${code}`);
+        const codeRes = await app.get(`${process.env.REACT_APP_BACKEND}/api/get-friend-playlists/${code}`);
         const { data } = codeRes;
 
         setFriendPlaylists(data.playlists);
@@ -77,7 +77,7 @@ const App = () => {
 
   const relogin = async () => {
     try {
-      const authRes = await axios.get(`${process.env.REACT_APP_BACKEND}/auth/relogin`, {
+      const authRes = await app.get(`${process.env.REACT_APP_BACKEND}/auth/relogin`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
