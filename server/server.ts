@@ -125,7 +125,7 @@ app.get('/callback', async (req: any, res: any) => {
       }
 
       // we can also pass the token to the browser to make requests from there
-      req.session.access_token = 'access_token';
+      req.session.access_token = access_token;
       req.session.refresh_token = refresh_token;
       res.redirect(process.env.FRONTEND_URI + '/' + id);
     } else {

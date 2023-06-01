@@ -106,7 +106,7 @@ app.get('/callback', async (req, res) => {
                 client.set(id + '_access', access_token);
             }
             // we can also pass the token to the browser to make requests from there
-            req.session.access_token = 'access_token';
+            req.session.access_token = access_token;
             req.session.refresh_token = refresh_token;
             res.redirect(process.env.FRONTEND_URI + '/' + id);
         }
@@ -159,13 +159,6 @@ app.get('/auth/is-logged-in', async (req, res, next) => {
 app
     .use('/api', spotifyRoutes)
     .use('/api', friendRoutes);
-// const options = {
-//   key: fs.readFileSync('./pem/192.168.1.178-key.pem'),
-//   cert: fs.readFileSync('./pem/192.168.1.178.pem'),
-// };
-// https.createServer(options, app).listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}.`)
-// });
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
