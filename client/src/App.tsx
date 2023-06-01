@@ -29,9 +29,10 @@ const App = () => {
   });
 
   useEffect(() => {
+    console.log(id);
     const getPlaylists = async () => {
       try {
-        const playlistsRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/`, {
+        const playlistsRes = await axios.get(`${process.env.REACT_APP_BACKEND}/api/get-playlists/${id}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
