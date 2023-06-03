@@ -35,7 +35,7 @@ const App = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
+            'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}/`,
             'Access-Control-Allow-Credentials': true,
             'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
             // 'Location': id
