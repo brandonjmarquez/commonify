@@ -41,6 +41,10 @@ app
     .use(express.json());
 client.on('error', (err) => console.log('Redis Client Error', err));
 await client.connect();
+app.get('/', (req, res) => {
+    res.status(200);
+    res.send('Hello!');
+});
 app.get('/auth/login', (req, res) => {
     var state = generateRandomString(16);
     res.cookie(stateKey, state);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from "react-router-dom";
 import axios from 'axios';
+import querystring from 'query-string';
 import { AiFillCopy } from 'react-icons/ai';
 import NewPlaylists from './components/NewPlaylists/NewPlaylists';
 import PlaylistLists from './components/PlaylistsLists/PlaylistLists';
@@ -55,8 +56,9 @@ const App = () => {
         console.error(err);
       }
     }
+    const code = querystring.parse(window.location.search).code ? querystring.parse(window.location.search).code?.toString() : '';
     getPlaylists();
-    setCode(window.location.hash.substring(1));
+    setCode(code!);
   }, []);
 
   useEffect(() => {
@@ -112,14 +114,13 @@ const App = () => {
   }
 
   const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    // e.preventDefault();
 
     const formData = [...new FormData(e.target as HTMLFormElement)]
       .reduce((a: any, [key, value]: any) => {
         a[key] = value;
         return a;
       }, {});
-    window.location.hash = formData.code;
     setCode(formData.code);
   }
 
@@ -199,7 +200,7 @@ const App = () => {
           }><AiFillCopy /></button>
         <form className="" onSubmit={submitHandler}>
           <label className="text-white">Enter Code: </label>
-          <input type="text" name="code"></input>
+          <input type="text" name="code" defaultValue={code}></input>
           <button type="submit" className="bg-white hover:bg-zinc-800 active:bg-zinc-700 hover:text-white outline rounded-md m-1">Connect</button>
         </form>
         <div>
