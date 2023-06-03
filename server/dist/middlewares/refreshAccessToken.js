@@ -10,7 +10,7 @@ const refreshAccessToken = (client_id, client_secret) => {
             body: params,
             url: 'https://accounts.spotify.com/api/token',
             headers: { 'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64')) },
-            json: true
+            json: true,
         };
         const response = await fetch('https://accounts.spotify.com/api/token', authOptions);
         const data = await response.json();

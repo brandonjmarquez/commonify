@@ -12,6 +12,7 @@ import client from './util/redis.js';
 import spotifyRoutes from './routes/spotifyRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
 import refreshAccessToken from './middlewares/refreshAccessToken.js';
+import allowCors from './middlewares/vercel-cors.js';
 const PORT = process.env.SERVER_PORT || 3001;
 var client_id = process.env.client_id; // Your client id
 var client_secret = process.env.client_secret; // Your secret
@@ -60,7 +61,7 @@ app.get('/auth/login', (req, res) => {
             state: state
         }));
 });
-app.get('/callback', async (req, res) => {
+app.get('/callback', allowCors, async (req, res) => {
     // your application requests refresh and access tokens
     // after checking the state parameter
     const code = req.query.code || null;
@@ -113,6 +114,9 @@ app.get('/callback', async (req, res) => {
             // we can also pass the token to the browser to make requests from there
             req.session.access_token = access_token;
             req.session.refresh_token = refresh_token;
+            // res.cookie('access_token', access_token, { maxAge: 5666666, httpOnly: true })
+            // res.cookie('refresh_token', refresh_token, { maxAge: 5666666, httpOnly: true })
+            res.setHeader('Access-Control-Allow-Origin', '*');
             res.redirect(process.env.FRONTEND_URI + '/' + id);
         }
         else {
@@ -123,7 +127,7 @@ app.get('/callback', async (req, res) => {
         }
     }
 });
-app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (req, res, next) => {
+app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), allowCors, async (req, res, next) => {
     try {
         console.log("Relogged in.");
         res.status(200);
