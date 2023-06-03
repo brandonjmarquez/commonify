@@ -135,6 +135,15 @@ app.get('/callback', allowCors, async (req: any, res: any) => {
       // we can also pass the token to the browser to make requests from there
       req.session.access_token = access_token;
       req.session.refresh_token = refresh_token;
+      res.setHeader('Access-Control-Allow-Credentials', true)
+      res.setHeader('Access-Control-Allow-Origin', '*')
+      // another common pattern
+      // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+      res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+      )
       // res.cookie('access_token', access_token, { maxAge: 5666666, httpOnly: true })
       // res.cookie('refresh_token', refresh_token, { maxAge: 5666666, httpOnly: true })
       res.setHeader('Access-Control-Allow-Origin', '*');
