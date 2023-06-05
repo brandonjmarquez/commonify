@@ -1,5 +1,4 @@
 import express from 'express';
-import cookieSession from 'cookie-session';
 const app = express();
 import fetch from 'node-fetch';
 import cors from 'cors';
@@ -12,7 +11,6 @@ import client from './util/redis.js';
 import spotifyRoutes from './routes/spotifyRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
 import refreshAccessToken from './middlewares/refreshAccessToken.js';
-import allowCors from './middlewares/vercel-cors.js';
 const PORT = process.env.SERVER_PORT || 3001;
 var client_id = process.env.client_id; // Your client id
 var client_secret = process.env.client_secret; // Your secret
@@ -32,12 +30,12 @@ app
     credentials: true, //access-control-allow-credentials:true
 }))
     .use(cookieParser())
-    .use(cookieSession({
-    name: 'Brandon',
-    keys: [process.env.cookie_key],
-    maxAge: 24 * 60 * 60 * 1000,
-    secure: false,
-}))
+    // .use(cookieSession({
+    //   name: 'Commonify',
+    //   keys: [process.env.cookie_key!],
+    //   maxAge: 24 * 60 * 60 * 1000,
+    //   secure: false,
+    // }))
     .use(express.urlencoded({ extended: true }))
     .use(express.json());
 client.on('error', (err) => console.log('Redis Client Error', err));
@@ -61,7 +59,7 @@ app.get('/auth/login', (req, res) => {
             state: state
         }));
 });
-app.get('/callback', allowCors, async (req, res) => {
+app.get('/callback', async (req, res) => {
     // your application requests refresh and access tokens
     // after checking the state parameter
     const code = req.query.code || null;
@@ -112,17 +110,15 @@ app.get('/callback', allowCors, async (req, res) => {
             }
             console.log(`Logged in ${id}.`);
             // we can also pass the token to the browser to make requests from there
-            req.session.access_token = access_token;
-            req.session.refresh_token = refresh_token;
+            // req.session.access_token = access_token;
+            // req.session.refresh_token = refresh_token;
+            res.cookie("access_token", access_token, { maxAge: 360000 });
+            // res.cookie("refresh_token", refresh_token)
             res.setHeader('Access-Control-Allow-Credentials', true);
-            res.setHeader('Access-Control-Allow-Origin', '*');
             // another common pattern
-            // res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+            // console.log('req.headers.origin', req.headers)
+            res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
             res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-            res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-            // res.cookie('access_token', access_token, { maxAge: 5666666, httpOnly: true })
-            // res.cookie('refresh_token', refresh_token, { maxAge: 5666666, httpOnly: true })
-            res.setHeader('Access-Control-Allow-Origin', '*');
             res.redirect(process.env.FRONTEND_URI + '/' + id);
         }
         else {
@@ -133,7 +129,7 @@ app.get('/callback', allowCors, async (req, res) => {
         }
     }
 });
-app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), allowCors, async (req, res, next) => {
+app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (req, res, next) => {
     try {
         console.log("Relogged in.");
         res.status(200);

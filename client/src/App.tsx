@@ -86,7 +86,7 @@ const App = () => {
           'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
           'Access-Control-Allow-Credentials': true
         },
-        'withCredentials':true
+        // 'withCredentials':true
       });
       setLastToken(new Date());
       window.location.reload();

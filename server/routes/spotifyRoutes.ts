@@ -1,15 +1,18 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
+import * as dotenv from 'dotenv';
+  dotenv.config();
 
 const spotifyRoutes = express.Router();
 
 spotifyRoutes
   .get('/get-playlists/:id', async (req: any, res: any) => {
     try {
-      res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
-      console.log(req.session.refresh_token)
-      if(req.session.refresh_token) {
+      // res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+      console.log('cookie', req.cookies.refresh_token);
+      if(req.cookies.refresh_token) {
         const response = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, {
-          headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+          headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
         });
         const data = await response.json()
         const { items } = data;
@@ -49,7 +52,7 @@ spotifyRoutes
         for (const playlistId of req.body.selectedPlaylists){
           const playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             method: 'GET',
-            headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+            headers: { 'Authorization': 'Bearer ' + req.cookies.access_token, 'Content-Type':'application/json' },
           });
           const data = await playlistRes.json();
           const { items } = data;
@@ -82,7 +85,7 @@ spotifyRoutes
         for (const playlistId of req.body.selectedPlaylists){
           let playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
             method: 'GET',
-            headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+            headers: { 'Authorization': 'Bearer ' + req.cookies.access_token, 'Content-Type':'application/json' },
           });
           let data = await playlistRes.json();
           let offset = 100;
@@ -90,7 +93,7 @@ spotifyRoutes
           while(data.items.length === 100) {
             let playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?offset=${offset}`, {
               method: 'GET',
-              headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+              headers: { 'Authorization': 'Bearer ' + req.cookies.access_token, 'Content-Type':'application/json' },
             });
 
             offset += 100;
@@ -134,7 +137,7 @@ spotifyRoutes
       };
       const createPlaylistRes = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, {
         method: "POST",
-        headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+        headers: { 'Authorization': 'Bearer ' + req.cookies.access_token, 'Content-Type':'application/json' },
         body: JSON.stringify(body)
       });
       const data = await createPlaylistRes.json();
@@ -143,7 +146,7 @@ spotifyRoutes
         const urisSlice = uris.slice(i, i + 100)
         const addTracksRes = await fetch(`https://api.spotify.com/v1/playlists/${data.id}/tracks`, {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + req.session.access_token, 'Content-Type':'application/json' },
+          headers: { 'Authorization': 'Bearer ' + req.cookies.access_token, 'Content-Type':'application/json' },
           body: JSON.stringify({uris: urisSlice, position: i})
         })
       }
