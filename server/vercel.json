@@ -9,15 +9,27 @@
   "routes": [
     {
       "src": "/(.*)", 
-      "dest": "/server.ts"
+      "dest": "/server.ts",
+      "headers": {
+        "key": "Access-Control-Allow-Origin", 
+        "value": "https://commonify.vercel.app"
+      }
     },
     {
       "src": "/api/.*", 
-      "dest": "server.ts"
+      "dest": "server.ts",
+      "headers": {
+        "key": "Access-Control-Allow-Origin",
+        "value": "https://commonify.vercel.app"
+      }
     },
     {
       "src": "/auth/.*",
-      "dest": "server.ts"
+      "dest": "server.ts",
+      "headers": {
+        "key": "Access-Control-Allow-Origin",
+        "value": "https://commonify.vercel.app"
+      }
     }
   ]
 }

@@ -8,6 +8,6 @@ const client = createClient({
         port: 13041
     }
 });
-export default client; 
+export default client;
 //redis://default:Dlj8fXGE8C0AvrnQ57YEdSCc0b3HaOsJ@redis-13041.c283.us-east-1-4.ec2.cloud.redislabs.com:13041
 //# sourceMappingURL=redis.js.map

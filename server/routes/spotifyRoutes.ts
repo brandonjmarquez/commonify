@@ -1,5 +1,4 @@
 import express from 'express';
-import cookieParser from 'cookie-parser';
 import * as dotenv from 'dotenv';
   dotenv.config();
 
@@ -33,7 +32,8 @@ spotifyRoutes
       } else {
         console.log(`User: ${req.params.id} not logged in.`)
         res.status(200);
-        res.redirect(`${process.env.FRONTEND_URI}`)
+        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+        res.redirect(`${process.env.FRONTEND_URI}`);
       }
     } catch(err) {
       console.error(err)

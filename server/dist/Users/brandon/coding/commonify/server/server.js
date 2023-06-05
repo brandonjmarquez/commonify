@@ -17,10 +17,10 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
-app.get("/", (req, res) => {
-    req.session.name = 'Brandon';
-    return res.send("Session set");
-});
+// app.get("/", (req, res) => {
+//     req.session.name = 'Brandon';
+//     return res.send("Session set");
+// });
 app.use('/api', spotifyRoutes);
 const getAll = async () => {
     const sql = 'SELECT * FROM test_table';

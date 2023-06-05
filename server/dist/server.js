@@ -1,4 +1,5 @@
 import express from 'express';
+// import cookieSession from 'cookie-session';
 const app = express();
 import fetch from 'node-fetch';
 import cors from 'cors';
@@ -106,14 +107,14 @@ app.get('/callback', async (req, res) => {
             if (!await client.get(id + '_refresh')) {
                 var cipherToken = CryptoJS.AES.encrypt(refresh_token, process.env.cookie_key).toString();
                 client.set(id + '_refresh', cipherToken);
+                res.cookie('refresh_token', cipherToken);
                 client.set(id + '_access', access_token);
+                res.cookie('access_token', access_token, { maxAge: 3600000 });
             }
             console.log(`Logged in ${id}.`);
             // we can also pass the token to the browser to make requests from there
             // req.session.access_token = access_token;
             // req.session.refresh_token = refresh_token;
-            res.cookie("access_token", access_token, { maxAge: 360000 });
-            // res.cookie("refresh_token", refresh_token)
             res.setHeader('Access-Control-Allow-Credentials', true);
             // another common pattern
             // console.log('req.headers.origin', req.headers)
@@ -141,10 +142,10 @@ app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (re
 });
 app.get('/auth/is-logged-in', async (req, res, next) => {
     try {
-        if (req.session.refresh_token) {
+        if (req.cookies.refresh_token) {
             const profileRes = await fetch('https://api.spotify.com/v1/me', {
                 method: 'GET',
-                headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+                headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
             });
             const profileData = await profileRes.json();
             if (profileRes.status === 200) {
@@ -154,7 +155,7 @@ app.get('/auth/is-logged-in', async (req, res, next) => {
                 next();
                 const profileRes = await fetch('https://api.spotify.com/v1/me', {
                     method: 'GET',
-                    headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+                    headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
                 });
                 const profileData = await profileRes.json();
                 console.log(`${profileData.id} is already logged in.\n\tLogging them back in.`);

@@ -1,5 +1,5 @@
 import express from 'express';
-import cookieSession from 'cookie-session';
+// import cookieSession from 'cookie-session';
 const app = express();
 import fetch from 'node-fetch';
 import cors from 'cors';
@@ -11,7 +11,8 @@ import * as dotenv from 'dotenv';
 import client from './util/redis.js';
 import spotifyRoutes from './routes/spotifyRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
-import refreshAccessToken from './middlewares/refreshAccessToken.js'
+import refreshAccessToken from './middlewares/refreshAccessToken.js';
+import allowCors from './middlewares/vercel-cors.js';
 
 const PORT = process.env.SERVER_PORT || 3001;
 var client_id = process.env.client_id!; // Your client id
@@ -126,7 +127,9 @@ app.get('/callback', async (req: any, res: any) => {
         var cipherToken = CryptoJS.AES.encrypt(refresh_token, process.env.cookie_key!).toString();
         
         client.set(id + '_refresh', cipherToken);
+        res.cookie('refresh_token', cipherToken)
         client.set(id + '_access', access_token);
+        res.cookie('access_token', access_token, {maxAge: 3600000})
       }
 
       console.log(`Logged in ${id}.`)
@@ -134,8 +137,6 @@ app.get('/callback', async (req: any, res: any) => {
       // we can also pass the token to the browser to make requests from there
       // req.session.access_token = access_token;
       // req.session.refresh_token = refresh_token;
-      res.cookie("access_token", access_token, {maxAge: 360000})
-      // res.cookie("refresh_token", refresh_token)
       res.setHeader('Access-Control-Allow-Credentials', true)
       // another common pattern
       // console.log('req.headers.origin', req.headers)
@@ -159,14 +160,14 @@ app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (re
   } catch(err) {
     console.log(err);
   }
-})
+});
 
 app.get('/auth/is-logged-in', async (req: any, res: any, next) => {
   try {
-    if(req.session.refresh_token) {
+    if(req.cookies.refresh_token) {
       const profileRes = await fetch('https://api.spotify.com/v1/me', {
         method: 'GET',
-        headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+        headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
       });
       const profileData: any = await profileRes.json();
 
@@ -176,7 +177,7 @@ app.get('/auth/is-logged-in', async (req: any, res: any, next) => {
         next();
         const profileRes = await fetch('https://api.spotify.com/v1/me', {
           method: 'GET',
-          headers: { 'Authorization': 'Bearer ' + req.session.access_token },
+          headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
         });
         const profileData: any = await profileRes.json();
 

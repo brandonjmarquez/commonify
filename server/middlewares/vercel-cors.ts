@@ -16,7 +16,7 @@ const allowCors = (handler: any) => async (req:any, res:any, next: Function) => 
   return await handler(req, res)
 }
 
-const handler = (req:any, res:any, next: Function) => {
+const handler = (req: any, res:any, next: Function) => {
   const d = new Date();
   res.end(d.toString());
   next();
