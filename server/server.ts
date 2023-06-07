@@ -122,13 +122,13 @@ app.get('/callback', async (req: any, res: any) => {
       const profileRes = await fetch('https://api.spotify.com/v1/me', options);
       const profileData: any = await profileRes.json();
       const { id } = profileData;
-
-      if(!await client.get(id + '_refresh')) {
+      console.log(!await client.get(id + '_refresh') , !await client.get(id + '_access') , req.cookies.access_token);
+      if(!await client.get(id + '_refresh') || !await client.get(id + '_access') || !req.cookies.access_token || !req.cookies.refresh_token) {
         var cipherToken = CryptoJS.AES.encrypt(refresh_token, process.env.cookie_key!).toString();
-        
+        console.log(cipherToken)
         client.set(id + '_refresh', cipherToken);
-        res.cookie('refresh_token', cipherToken)
         client.set(id + '_access', access_token);
+        res.cookie('refresh_token', cipherToken)
         res.cookie('access_token', access_token, {maxAge: 3600000})
       }
 
@@ -142,7 +142,7 @@ app.get('/callback', async (req: any, res: any) => {
       // console.log('req.headers.origin', req.headers)
       res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
       res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-      res.redirect(process.env.FRONTEND_URI + '/' + id);
+      res.redirect(`${process.env.FRONTEND_URI}/${id}`);
     } else {
       res.redirect('/#' +
         querystring.stringify({
@@ -152,11 +152,27 @@ app.get('/callback', async (req: any, res: any) => {
   }
 });
 
-app.get('/auth/relogin', refreshAccessToken(client_id, client_secret), async (req: any, res: any, next) => {
+app.get('/auth/relogin/:id', (req: any, res: any, next) => {
+  console.log(req.cookies)
+  var refresh_token;
+  if(res.cookies?.refresh_token === undefined) refresh_token = null;
+  else refresh_token = res.cookies.refresh_token;
+  if(refresh_token) {next(); console.log('next')}
+  else {
+    console.log('not next')
+    res.status(302);
+    res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+    res.setHeader('Access-Control-Allow-Credentials', false)
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.redirect(process.env.FRONTEND_URI);
+  }
+}, refreshAccessToken(client_id, client_secret), async (req: any, res: any, next) => {
   try {
     console.log("Relogged in.")
+    res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+    console.log(res._headers["set-cookie"])
     res.status(200);
-    res.send();
+    res.redirect(`${process.env.FRONTEND_URI}/${req.params.id}`);
   } catch(err) {
     console.log(err);
   }

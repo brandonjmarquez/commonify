@@ -33,7 +33,9 @@ spotifyRoutes
         else {
             console.log(`User: ${req.params.id} not logged in.`);
             res.status(200);
+            res.setHeader('Access-Control-Allow-Credentials', true);
             res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+            res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
             res.redirect(`${process.env.FRONTEND_URI}`);
         }
     }

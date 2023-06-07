@@ -2,6 +2,7 @@ node_modules
 authentication
 ./docker-compose.yml
 .env
+dist
 .DS_Store
 pem
 build

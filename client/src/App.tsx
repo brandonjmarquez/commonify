@@ -35,12 +35,12 @@ const App = () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}/`,
+            'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
             'Access-Control-Allow-Credentials': true,
             'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
             // 'Location': id
           },
-          'withCredentials':true
+          // 'withCredentials':true
         });
         const { data } = playlistsRes;
 
@@ -79,17 +79,19 @@ const App = () => {
 
   const relogin = async () => {
     try {
-      const authRes = await app.get(`${process.env.REACT_APP_BACKEND}/auth/relogin`, {
+      const authRes = await axios.get(`${process.env.REACT_APP_BACKEND}/auth/relogin${window.location.pathname}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
-          'Access-Control-Allow-Credentials': true
+          'Access-Control-Allow-Credentials': true,
+          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
         },
         // 'withCredentials':true
       });
+      console.log(await authRes.data)
       setLastToken(new Date());
-      window.location.reload();
+      // window.location.reload();
     } catch(err) {
       console.error(err);
     }
