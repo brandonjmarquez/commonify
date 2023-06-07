@@ -23,7 +23,7 @@ const refreshAccessToken = (client_id: string, client_secret: string) => {
     };
     const response = await fetch('https://accounts.spotify.com/api/token', authOptions)
     const data: any = await response.json();
-    console.log('Refreshed Token.')
+    console.log('Refreshed Token.'); 
     res.cookie('refresh_token', encrypted_token)
     res.cookie('access_token', data.access_token, {maxAge: 3600000});
     next();
