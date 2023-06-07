@@ -157,17 +157,20 @@ app.get('/auth/relogin/:id', (req: any, res: any, next) => {
   if(req.cookies?.refresh_token === undefined) refresh_token = null;
   else refresh_token = req.cookies.refresh_token;
 
-  if(refresh_token) next();
-  else {
+  if(refresh_token) {
+    console.log('Start Refresh.')
+    next();
+  } else {
+    console.log('No Refresh Needed.');
     res.status(302);
     res.setHeader('Access-Control-Allow-Origin', req.header('Origin'));
-    res.setHeader('Access-Control-Allow-Credentials', false)
+    res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
     // res.redirect(process.env.FRONTEND_URI);
     return res.status(200).json({
       success:true,
       redirectUrl: '/'
-  })
+    })
   }
 }, refreshAccessToken(client_id, client_secret), async (req: any, res: any, next) => {
   try {

@@ -7,7 +7,7 @@ const spotifyRoutes = express.Router();
 spotifyRoutes
   .get('/get-playlists/:id', async (req: any, res: any) => {
     try {
-      if(req.cookies.refresh_token) {
+      // if(req.cookies.refresh_token) {
         const response = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, {
           headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
         });
@@ -27,14 +27,19 @@ spotifyRoutes
           res.status(401);
           res.send({message: 'Invalid Token.'})
         }
-      } else {
-        console.log(`User: ${req.params.id} not logged in.`)
-        res.status(200);
-        res.setHeader('Access-Control-Allow-Credentials', true)
-        res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
-        res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-        res.redirect(`${process.env.FRONTEND_URI}`);
-      }
+      // } else {
+      //   console.log(`User: ${req.params.id} not logged in.`)
+      //   res.status(200);
+      //   res.setHeader('Access-Control-Allow-Credentials', true)
+      //   res.setHeader('Access-Control-Allow-Origin', req.header('Origin'));
+      //   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+      //   // res.redirect(`${process.env.FRONTEND_URI}`);
+      //   return res.status(200).json({
+      //     success:true,
+      //     redirectUrl: '/',
+      //     message: `User: ${req.params.id} not logged in.`
+      //   })
+      // }
     } catch(err) {
       console.error(err)
     }

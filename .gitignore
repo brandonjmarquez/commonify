@@ -1,6 +1,7 @@
 node_modules
 authentication
-./docker-compose.yml
+docker-compose-mysql.yml
+docker-compose-redis.yml
 .env
 dist
 .DS_Store

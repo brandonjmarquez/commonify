@@ -38,9 +38,8 @@ const App = () => {
             'Access-Control-Allow-Origin': `${process.env.REACT_APP_FRONTEND}`,
             'Access-Control-Allow-Credentials': true,
             'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
-            // 'Location': id
           },
-          // 'withCredentials':true
+          'withCredentials':true
         });
         const { data } = playlistsRes;
 
@@ -50,6 +49,7 @@ const App = () => {
           return data.items;
         } else {
           setResponseMessage(data.message);
+          // window.location.href = data.redirectUrl;
         }
       } catch(err) {
         relogin();

@@ -36,10 +36,6 @@ const NewPlaylists = (props: Props) => {
     }
   }
 
-  useEffect(() => {
-    console.log(props.newPlaylists);
-  }, [props.newPlaylists]);
-
   return (
     <div className="flex flex-col md:grid md:grid-cols-3 m-10 md:m-0">
       <div className="flex flex-col justify-start items-center h-48 overflow-scroll scrollbar-thin scrollbar-track-none scrollbar-thumb-rounded-md scrollbar-thumb-white bg-[#121212] text-white rounded outline outline-[#1DB954] m-1">
