@@ -32,7 +32,7 @@ var stateKey = 'spotify_auth_state';
 
 app
   .use(cors({
-    origin: process.env.FRONTEND_URI, 
+    origin: [process.env.FRONTEND_URI!], 
     credentials: true,            //access-control-allow-credentials:true
   }))
   .use(cookieParser())
@@ -153,26 +153,32 @@ app.get('/callback', async (req: any, res: any) => {
 });
 
 app.get('/auth/relogin/:id', (req: any, res: any, next) => {
-  console.log(req.cookies)
   var refresh_token;
-  if(res.cookies?.refresh_token === undefined) refresh_token = null;
-  else refresh_token = res.cookies.refresh_token;
-  if(refresh_token) {next(); console.log('next')}
+  if(req.cookies?.refresh_token === undefined) refresh_token = null;
+  else refresh_token = req.cookies.refresh_token;
+
+  if(refresh_token) next();
   else {
-    console.log('not next')
     res.status(302);
-    res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
+    res.setHeader('Access-Control-Allow-Origin', req.header('Origin'));
     res.setHeader('Access-Control-Allow-Credentials', false)
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
-    res.redirect(process.env.FRONTEND_URI);
+    // res.redirect(process.env.FRONTEND_URI);
+    return res.status(200).json({
+      success:true,
+      redirectUrl: '/'
+  })
   }
 }, refreshAccessToken(client_id, client_secret), async (req: any, res: any, next) => {
   try {
     console.log("Relogged in.")
     res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
-    console.log(res._headers["set-cookie"])
     res.status(200);
-    res.redirect(`${process.env.FRONTEND_URI}/${req.params.id}`);
+    // res.redirect(`${process.env.FRONTEND_URI}/${req.params.id}`);
+    return res.status(200).json({
+      success:true,
+      redirectUrl: `/${req.params.id}`
+    });
   } catch(err) {
     console.log(err);
   }

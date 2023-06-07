@@ -79,7 +79,7 @@ const App = () => {
 
   const relogin = async () => {
     try {
-      const authRes = await axios.get(`${process.env.REACT_APP_BACKEND}/auth/relogin${window.location.pathname}`, {
+      const authRes = await app.get(`${process.env.REACT_APP_BACKEND}/auth/relogin${window.location.pathname}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ const App = () => {
       });
       console.log(await authRes.data)
       setLastToken(new Date());
-      // window.location.reload();
+      window.location.href = await authRes.data.redirectUrl;
     } catch(err) {
       console.error(err);
     }

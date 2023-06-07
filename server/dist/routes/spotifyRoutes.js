@@ -5,8 +5,6 @@ const spotifyRoutes = express.Router();
 spotifyRoutes
     .get('/get-playlists/:id', async (req, res) => {
     try {
-        // res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URI);
-        console.log('cookie', req.cookies.refresh_token);
         if (req.cookies.refresh_token) {
             const response = await fetch(`https://api.spotify.com/v1/users/${req.params.id}/playlists`, {
                 headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
