@@ -3,7 +3,6 @@ authentication
 docker-compose-mysql.yml
 docker-compose-redis.yml
 .env
-dist
 .DS_Store
 pem
 build
