@@ -7,7 +7,7 @@ const refreshAccessToken = (client_id: string, client_secret: string) => {
   return async (req: any, res: any, next: Function) => {
     const code = req.query.code || null;
     const { id } = req.params
-    const encrypted_token = await client.get(id + '_refresh') || null;
+    const encrypted_token = await client.get(id + '_refresh') || req.cookies.refresh_token || null;
     const bytes = CryptoJS.AES.decrypt(encrypted_token!, process.env.cookie_key!);
     const refresh_token = bytes.toString(CryptoJS.enc.Utf8);
     const params = new URLSearchParams();

@@ -198,17 +198,11 @@ app.get('/auth/is-logged-in', async (req: any, res: any, next) => {
 
       if(profileRes.status === 200) {
         res.send(profileData.id)
-      } else if(profileRes.status === 401) {
-        next();
-        const profileRes = await fetch('https://api.spotify.com/v1/me', {
-          method: 'GET',
-          headers: { 'Authorization': 'Bearer ' + req.cookies.access_token },
-        });
-        const profileData: any = await profileRes.json();
-
         console.log(`${profileData.id} is already logged in.\n\tLogging them back in.`);
         res.status(200);
         res.send(profileData.id)
+      } else if(profileRes.status === 401) {
+        next();
       }
     } else {
       res.send('')
@@ -216,7 +210,11 @@ app.get('/auth/is-logged-in', async (req: any, res: any, next) => {
   } catch(err) {
     console.log(err);
   }
-}, refreshAccessToken(client_id, client_secret));
+}, refreshAccessToken(client_id, client_secret), (req: any, res: any) => {
+  res.send({
+    redirectUrl: '/'
+  })
+});
 
 app
   .use('/api', spotifyRoutes)
