@@ -107,7 +107,6 @@ app.get('/callback', async (req, res) => {
             console.log(!await client.get(id + '_refresh'), !await client.get(id + '_access'), req.cookies.access_token);
             if (!await client.get(id + '_refresh') || !await client.get(id + '_access') || !req.cookies.access_token || !req.cookies.refresh_token) {
                 var cipherToken = CryptoJS.AES.encrypt(refresh_token, process.env.cookie_key).toString();
-                console.log('cipher', cipherToken);
                 client.set(id + '_refresh', cipherToken);
                 client.set(id + '_access', access_token);
                 res.cookie('refresh_token', cipherToken);
