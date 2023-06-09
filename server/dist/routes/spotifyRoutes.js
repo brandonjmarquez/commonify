@@ -53,6 +53,7 @@ spotifyRoutes
         }
         else {
             let mergedPlaylist = [];
+            let mergedPlaylistSet = new Set();
             let playlistName = '';
             for (const playlistId of req.body.selectedPlaylists) {
                 const playlistRes = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
@@ -62,8 +63,12 @@ spotifyRoutes
                 const data = await playlistRes.json();
                 const { items } = data;
                 const tracks = items.map((track) => track.track);
-                mergedPlaylist = [...mergedPlaylist, ...tracks];
+                tracks.forEach((track) => {
+                    mergedPlaylistSet.add(JSON.stringify(track));
+                });
             }
+            mergedPlaylist = Array.from(mergedPlaylistSet);
+            mergedPlaylist = mergedPlaylist.map((track) => JSON.parse(track));
             mergedPlaylist = mergedPlaylist.filter((track) => !track.is_local);
             for (const name of req.body.selectedPlaylistsNames) {
                 playlistName += `${name} + `;

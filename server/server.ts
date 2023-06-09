@@ -128,8 +128,8 @@ app.get('/callback', async (req: any, res: any) => {
         console.log(cipherToken)
         client.set(id + '_refresh', cipherToken);
         client.set(id + '_access', access_token);
-        res.cookie('refresh_token', cipherToken)
-        res.cookie('access_token', access_token, {maxAge: 3600000})
+        res.cookie('refresh_token', cipherToken, {sameSite: true, secure: true});
+        res.cookie('access_token', access_token, {sameSite: true, secure: true, maxAge: 3600000});
       }
 
       console.log(`Logged in ${id}.`)

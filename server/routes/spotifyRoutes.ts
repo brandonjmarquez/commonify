@@ -52,6 +52,7 @@ spotifyRoutes
         res.send({message: "Please select at least two playlists."})
       } else {
         let mergedPlaylist: any = [];
+        let mergedPlaylistSet: any = new Set();
         let playlistName = '';
 
         for (const playlistId of req.body.selectedPlaylists){
@@ -63,10 +64,15 @@ spotifyRoutes
           const { items } = data;
           const tracks = items.map((track: any) => track.track)
 
-          mergedPlaylist = [...mergedPlaylist, ...tracks];
+          tracks.forEach((track: any) => {
+            mergedPlaylistSet.add(JSON.stringify(track));
+          });
         }
 
+        mergedPlaylist = Array.from(mergedPlaylistSet);
+        mergedPlaylist = mergedPlaylist.map((track: any) => JSON.parse(track))
         mergedPlaylist = mergedPlaylist.filter((track: any) => !track.is_local)
+        
         for(const name of req.body.selectedPlaylistsNames) {
           playlistName += `${name} + `
         }
