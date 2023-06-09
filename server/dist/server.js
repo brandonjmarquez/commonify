@@ -107,11 +107,11 @@ app.get('/callback', async (req, res) => {
             console.log(!await client.get(id + '_refresh'), !await client.get(id + '_access'), req.cookies.access_token);
             if (!await client.get(id + '_refresh') || !await client.get(id + '_access') || !req.cookies.access_token || !req.cookies.refresh_token) {
                 var cipherToken = CryptoJS.AES.encrypt(refresh_token, process.env.cookie_key).toString();
-                console.log(cipherToken);
+                console.log('cipher', cipherToken);
                 client.set(id + '_refresh', cipherToken);
                 client.set(id + '_access', access_token);
-                res.cookie('refresh_token', cipherToken, { sameSite: true, secure: true });
-                res.cookie('access_token', access_token, { sameSite: true, secure: true, maxAge: 3600000 });
+                res.cookie('refresh_token', cipherToken);
+                res.cookie('access_token', access_token, { maxAge: 3600000 });
             }
             console.log(`Logged in ${id}.`);
             // we can also pass the token to the browser to make requests from there
